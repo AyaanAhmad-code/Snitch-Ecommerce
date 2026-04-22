@@ -2,6 +2,8 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import { useProduct } from '../hooks/useProduct';
 import { useCart } from '../../cart/hooks/useCart';
+import { useSelector } from 'react-redux';
+import toast from 'react-hot-toast';
 
 const ProductDetail = () => {
     const { productId } = useParams();
@@ -11,6 +13,9 @@ const ProductDetail = () => {
     const navigate = useNavigate();
     const { handleGetProductById } = useProduct();
     const { handleAddItem } = useCart();
+    const user = useSelector(state => state.auth.user);
+
+
 
     async function fetchProductDetails() {
         try {
@@ -28,7 +33,7 @@ const ProductDetail = () => {
 
     useEffect(() => {
         if (product?.variants?.length > 0) {
-            setSelectedAttributes(product.variants[0].attributes || {});
+            setSelectedAttributes(product.variants[ 0 ].attributes || {});
         }
     }, [ product ]);
 
@@ -38,49 +43,52 @@ const ProductDetail = () => {
             if (!v.attributes) return false;
             const vKeys = Object.keys(v.attributes);
             const sKeys = Object.keys(selectedAttributes);
-            const isMatch = vKeys.every(k => v.attributes[k] === selectedAttributes[k]);
+            const isMatch = vKeys.every(k => v.attributes[ k ] === selectedAttributes[ k ]);
             // If they don't have exactly the same keys, they shouldn't perfectly match, 
             // but we might only care about matching what's available.
             return vKeys.length === sKeys.length && isMatch;
         });
-    }, [product, selectedAttributes]);
+    }, [ product, selectedAttributes ]);
+
+
+    console.log({ product, activeVariant })
 
     const availableAttributes = useMemo(() => {
         if (!product?.variants) return {};
         const attrs = {};
         product.variants.forEach(variant => {
             if (variant.attributes) {
-                Object.entries(variant.attributes).forEach(([key, value]) => {
-                    if (!attrs[key]) attrs[key] = new Set();
-                    attrs[key].add(value);
+                Object.entries(variant.attributes).forEach(([ key, value ]) => {
+                    if (!attrs[ key ]) attrs[ key ] = new Set();
+                    attrs[ key ].add(value);
                 });
             }
         });
         Object.keys(attrs).forEach(key => {
-            attrs[key] = Array.from(attrs[key]);
+            attrs[ key ] = Array.from(attrs[ key ]);
         });
         return attrs;
-    }, [product]);
+    }, [ product ]);
 
     useEffect(() => {
         setSelectedImage(0);
-    }, [activeVariant]);
+    }, [ activeVariant ]);
 
     const handleAttributeChange = (attrName, value) => {
-        const newAttrs = { ...selectedAttributes, [attrName]: value };
-        
+        const newAttrs = { ...selectedAttributes, [ attrName ]: value };
+
         // Find if an exact match exists for this combination
         const exactMatch = product.variants.find(v => {
             const vAttrs = v.attributes || {};
-            return Object.keys(newAttrs).every(k => newAttrs[k] === vAttrs[k]) &&
-                   Object.keys(vAttrs).every(k => newAttrs[k] === vAttrs[k]);
+            return Object.keys(newAttrs).every(k => newAttrs[ k ] === vAttrs[ k ]) &&
+                Object.keys(vAttrs).every(k => newAttrs[ k ] === vAttrs[ k ]);
         });
 
         if (exactMatch) {
             setSelectedAttributes(exactMatch.attributes);
         } else {
             // Find any variant that has this newly selected attribute to fallback nicely
-            const fallbackVariant = product.variants.find(v => v.attributes && v.attributes[attrName] === value);
+            const fallbackVariant = product.variants.find(v => v.attributes && v.attributes[ attrName ] === value);
             if (fallbackVariant) {
                 setSelectedAttributes(fallbackVariant.attributes);
             } else {
@@ -100,14 +108,14 @@ const ProductDetail = () => {
     }
 
     console.log(product)
-    
+
     // Fallbacks
-    const displayImages = (activeVariant?.images && activeVariant.images.length > 0) 
-        ? activeVariant.images 
+    const displayImages = (activeVariant?.images && activeVariant.images.length > 0)
+        ? activeVariant.images
         : (product.images && product.images.length > 0 ? product.images : [ { url: '/snitch_editorial_warm.png' } ]);
 
-    const displayPrice = activeVariant?.price?.amount 
-        ? activeVariant.price 
+    const displayPrice = activeVariant?.price?.amount
+        ? activeVariant.price
         : product.price;
 
     return (
@@ -122,22 +130,6 @@ const ProductDetail = () => {
                 className="min-h-screen selection:bg-[#C9A96E]/30 pb-24"
                 style={{ backgroundColor: '#fbf9f6', fontFamily: "'Inter', sans-serif" }}
             >
-                {/* ── Navbar ── */}
-                <nav className="px-8 lg:px-16 xl:px-24 pt-10 pb-6 flex items-center justify-between border-b" style={{ borderColor: '#e4e2df' }}>
-                    <Link to="/"
-                        className="text-sm font-medium tracking-[0.35em] uppercase hover:opacity-80 transition-opacity"
-                        style={{ fontFamily: "'Cormorant Garamond', serif", color: '#C9A96E' }}
-                    >
-                        Snitch.
-                    </Link>
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="text-[10px] uppercase tracking-[0.2em] font-medium transition-colors hover:text-[#C9A96E]"
-                        style={{ color: '#7A6E63' }}
-                    >
-                        Return to Archive
-                    </button>
-                </nav>
 
                 <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pt-12 lg:pt-20">
                     <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-start">
@@ -220,14 +212,14 @@ const ProductDetail = () => {
                             <div className="h-px w-full mb-8" style={{ backgroundColor: '#e4e2df' }} />
 
                             {/* Options/Variants */}
-                            {Object.entries(availableAttributes).map(([attrName, values]) => (
+                            {Object.entries(availableAttributes).map(([ attrName, values ]) => (
                                 <div key={attrName} className="mb-6">
                                     <h3 className="text-[10px] uppercase tracking-[0.24em] font-medium mb-3" style={{ color: '#C9A96E' }}>
                                         {attrName}
                                     </h3>
                                     <div className="flex flex-wrap gap-2">
                                         {values.map(val => {
-                                            const isSelected = selectedAttributes[attrName] === val;
+                                            const isSelected = selectedAttributes[ attrName ] === val;
                                             return (
                                                 <button
                                                     key={val}
@@ -278,11 +270,47 @@ const ProductDetail = () => {
                                         e.currentTarget.style.backgroundColor = '#1b1c1a';
                                         e.currentTarget.style.color = '#fbf9f6';
                                     }}
-                                    onClick={()=> {
-                                        handleAddItem({
-                                            productId:product._id,
-                                            variantId:activeVariant._id
-                                        })
+                                    onClick={async () => {
+                                        if(!user){
+                                            return navigate("/login");
+                                        }
+                                        try {
+                                            await handleAddItem({
+                                                productId: product._id,
+                                                variantId: activeVariant._id
+                                            });
+
+                                            toast.custom((t) => (
+                                                <div
+                                                    className={`${t.visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} transform transition-all duration-300 max-w-sm w-full bg-white shadow-2xl pointer-events-auto flex items-center p-4 gap-4`}
+                                                    style={{ border: '1px solid #e4e2df', backgroundColor: '#fbf9f6', fontFamily: "'Inter', sans-serif" }}
+                                                >
+                                                    <img 
+                                                        src={displayImages[selectedImage]?.url || displayImages[0]?.url} 
+                                                        alt="Product" 
+                                                        className="w-14 h-16 object-cover" 
+                                                        style={{ backgroundColor: '#f5f3f0' }}
+                                                    />
+                                                    <div className="flex-1 flex flex-col justify-center">
+                                                        <span className="text-[10px] uppercase tracking-[0.1em] text-green-700 font-semibold mb-1">
+                                                            Added to Cart
+                                                        </span>
+                                                        <span className="text-sm font-medium text-[#1b1c1a]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                                                            {product.title}
+                                                        </span>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => { toast.dismiss(t.id); navigate('/cart'); }}
+                                                        className="px-4 py-2 text-[10px] uppercase tracking-[0.15em] transition border text-[#1b1c1a] hover:bg-[#1b1c1a] hover:text-[#fbf9f6]"
+                                                        style={{ borderColor: '#d0c5b5' }}
+                                                    >
+                                                        View Cart
+                                                    </button>
+                                                </div>
+                                            ), { duration: 4000 });
+                                        } catch (error) {
+                                            console.error("Failed to add to cart");
+                                        }
                                     }}
                                 >
                                     Add to Cart

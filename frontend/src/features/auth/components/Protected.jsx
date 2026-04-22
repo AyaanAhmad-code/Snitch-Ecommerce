@@ -18,7 +18,11 @@ const Protected = ({children, role = "buyer"}) => {
     return <Navigate to="/login" replace />;
   }
 
-  if(user.role !== role){
+  // For "seller" role, only sellers are allowed.
+  // For "buyer" role, both "buyer" and "seller" can access.
+  if (role === "seller" && user.role !== "seller") {
+    return <Navigate to="/" />
+  } else if (role === "buyer" && user.role !== "buyer" && user.role !== "seller") {
     return <Navigate to="/" />
   }
   
