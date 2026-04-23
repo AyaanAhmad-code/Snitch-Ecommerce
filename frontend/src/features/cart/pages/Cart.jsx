@@ -189,7 +189,7 @@ const Cart = () => {
                                         >
                                             {/* Product Image */}
                                             <div
-                                                className="flex-shrink-0 overflow-hidden"
+                                                className="shrink-0 overflow-hidden"
                                                 style={{
                                                     width: 'clamp(100px, 15vw, 160px)',
                                                     aspectRatio: '4/5',
@@ -394,7 +394,7 @@ const Cart = () => {
                                             Shipping
                                         </span>
                                         <span
-                                            className="text-[10px] uppercase tracking-[0.1em]"
+                                            className="text-[10px] uppercase tracking-widest"
                                             style={{ color: shippingFree ? '#5a7a5a' : tokens.muted }}
                                         >
                                             {shippingFree ? 'Complimentary' : `Complimentary over INR 15,000`}
@@ -409,7 +409,7 @@ const Cart = () => {
                                             Duties & Taxes
                                         </span>
                                         <span
-                                            className="text-[10px] uppercase tracking-[0.1em]"
+                                            className="text-[10px] uppercase tracking-widest"
                                             style={{ color: tokens.muted }}
                                         >
                                             Included
