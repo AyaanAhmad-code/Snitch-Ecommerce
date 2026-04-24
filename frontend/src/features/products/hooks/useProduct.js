@@ -17,8 +17,8 @@ export const useProduct = () => {
         return data.product
     }
 
-    async function handleGetAllProducts(){
-        const data = await getAllProducts()
+    async function handleGetAllProducts(query = ""){
+        const data = await getAllProducts(query)
         dispatch(setProducts(data.products))
     }
 

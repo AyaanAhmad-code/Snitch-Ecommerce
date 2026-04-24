@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useProduct } from '../hooks/useProduct';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 
 const Home = () => {
     const products = useSelector(state => state.product.products);
@@ -9,10 +9,12 @@ const Home = () => {
     const { handleGetAllProducts } = useProduct();
 
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const query = searchParams.get('q') || "";
 
     useEffect(() => {
-        handleGetAllProducts();
-    }, []);
+        handleGetAllProducts(query);
+    }, [query]);
 
     return (
         <>

@@ -40,14 +40,29 @@ export const getSellerProducts = async (req, res) => {
 
 export const getAllProducts = async (req,res) => {
 
-    const products = await productModel.find()
+    try {
+        const { q } = req.query;
+        let query = {};
+        
+        if (q) {
+            query = {
+                $or: [
+                    { title: { $regex: q, $options: 'i' } },
+                    { description: { $regex: q, $options: 'i' } }
+                ]
+            };
+        }
 
-    return res.status(200).json({
-        message: "Products fetched successfully",
-        success: true,
-        products
-    })
-    
+        const products = await productModel.find(query);
+
+        return res.status(200).json({
+            message: "Products fetched successfully",
+            success: true,
+            products
+        });
+    } catch (error) {
+        return res.status(500).json({ message: "Error fetching products", success: false, error: error.message });
+    }
 }
 
 export const getProuctDetails = async (req,res) => {
