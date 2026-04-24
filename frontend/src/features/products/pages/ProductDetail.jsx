@@ -10,8 +10,9 @@ const ProductDetail = () => {
     const [ product, setProduct ] = useState(null);
     const [ selectedImage, setSelectedImage ] = useState(0);
     const [ selectedAttributes, setSelectedAttributes ] = useState({});
+    const [ similarProducts, setSimilarProducts ] = useState([]);
     const navigate = useNavigate();
-    const { handleGetProductById } = useProduct();
+    const { handleGetProductById, handleGetSimilarProducts } = useProduct();
     const { handleAddItem } = useCart();
     const user = useSelector(state => state.auth.user);
 
@@ -27,8 +28,19 @@ const ProductDetail = () => {
         }
     }
 
+    async function fetchSimilarProducts() {
+        try {
+            const data = await handleGetSimilarProducts(productId);
+            setSimilarProducts(data || []);
+        } catch (error) {
+            console.error("Failed to fetch similar products", error);
+        }
+    }
+
     useEffect(() => {
         fetchProductDetails();
+        fetchSimilarProducts();
+        window.scrollTo(0, 0); // Scroll to top when productId changes
     }, [ productId ]);
 
     useEffect(() => {
@@ -353,6 +365,62 @@ const ProductDetail = () => {
 
                         </div>
                     </div>
+
+                    {/* ── You May Also Like ── */}
+                    {similarProducts && similarProducts.length > 0 && (
+                        <div className="mt-32 border-t pt-16" style={{ borderColor: '#e4e2df' }}>
+                            <div className="text-center mb-12">
+                                <h2 
+                                    className="text-3xl lg:text-4xl font-light"
+                                    style={{ fontFamily: "'Cormorant Garamond', serif", color: '#1b1c1a' }}
+                                >
+                                    You May Also Like
+                                </h2>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
+                                {similarProducts.map(simProduct => {
+                                    const imageUrl = simProduct.images && simProduct.images.length > 0
+                                        ? simProduct.images[0].url
+                                        : '/snitch_editorial_warm.png';
+
+                                    return (
+                                        <div
+                                            onClick={() => navigate(`/product/${simProduct._id}`)}
+                                            key={simProduct._id} className="group cursor-pointer flex flex-col">
+                                            {/* Image Container */}
+                                            <div className="aspect-[4/5] overflow-hidden mb-6" style={{ backgroundColor: '#f5f3f0' }}>
+                                                <img
+                                                    src={imageUrl}
+                                                    alt={simProduct.title}
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                />
+                                            </div>
+
+                                            {/* Product Details */}
+                                            <div className="flex flex-col gap-2">
+                                                <h3
+                                                    className="text-lg leading-snug transition-colors duration-300 group-hover:text-[#C9A96E]"
+                                                    style={{ fontFamily: "'Cormorant Garamond', serif", color: '#1b1c1a' }}
+                                                >
+                                                    {simProduct.title}
+                                                </h3>
+
+                                                <div className="mt-1">
+                                                    <span
+                                                        className="text-[10px] uppercase tracking-[0.2em] font-medium"
+                                                        style={{ color: '#1b1c1a' }}
+                                                    >
+                                                        {simProduct.price?.currency} {simProduct.price?.amount?.toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
                 </div>
             </div>
         </>

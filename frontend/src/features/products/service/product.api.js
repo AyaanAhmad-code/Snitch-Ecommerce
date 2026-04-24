@@ -45,3 +45,8 @@ export async function addProductVariant(productId, newProductVariant){
 
     return response
 }
+
+export async function getSimilarProducts(productId) {
+    const response = await productApiInstance.get(`/similar/${productId}`)
+    return response.data
+}

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import productModel from '../models/product.model.js';
 import { uploadFile } from '../services/storage.service.js';
 
@@ -134,4 +135,51 @@ export const addProductVariant = async (req,res) => {
         success: true,
         product
     })
+}
+
+export const getSimilarProducts = async (req,res) => {
+    try {
+        const { id } = req.params;
+        
+        const currentProduct = await productModel.findById(id);
+        if (!currentProduct) {
+            return res.status(404).json({ message: "Product not found", success: false });
+        }
+
+        // Combine title and description to extract keywords
+        const textToAnalyze = `${currentProduct.title} ${currentProduct.description || ''}`;
+        
+        // Extract words longer than 2 characters (e.g., 'Shirt', 'Polo', 'Jeans')
+        const words = textToAnalyze.split(/[\s,\.\-]+/).filter(word => word.length > 2);
+        
+        // Remove duplicates
+        const uniqueWords = [...new Set(words)];
+        
+        let matchCondition = { _id: { $ne: new mongoose.Types.ObjectId(id) } };
+
+        if (uniqueWords.length > 0) {
+            // Escape special regex characters
+            const safeWords = uniqueWords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            const regex = new RegExp(safeWords.join('|'), 'i');
+            
+            // Search in both title and description
+            matchCondition.$or = [
+                { title: { $regex: regex } },
+                { description: { $regex: regex } }
+            ];
+        }
+
+        const products = await productModel.aggregate([
+            { $match: matchCondition },
+            { $sample: { size: 30 } }
+        ]);
+
+        return res.status(200).json({
+            message: "Similar products fetched successfully",
+            success: true,
+            products
+        });
+    } catch (error) {
+        return res.status(500).json({ message: "Error fetching similar products", success: false, error: error.message });
+    }
 }
