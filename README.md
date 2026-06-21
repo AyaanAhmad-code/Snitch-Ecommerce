@@ -1,6 +1,6 @@
 <div align="center">
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png" width="80" alt="React Logo" />
-  <img src="https://nodejs.org/static/images/logo.svg" width="120" alt="Node.js Logo" />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/d/d9/Node.js_logo.svg" width="120" alt="Node.js Logo" />
   
   <h1>Premium E-Commerce Platform (MERN)</h1>
   <p>A full-stack, production-ready premium fashion e-commerce application built with the MERN stack. Designed with a magazine-style UI inspired by top fashion brands like Snitch and Zara.</p>
@@ -43,7 +43,8 @@
 - Passport.js (Google OAuth)
 - JSON Web Tokens (JWT) & bcrypt (Authentication)
 - ImageKit Node.js (Media storage)
-- Razorpay Node.js SDK
+- Razorpay Node.js SDK (Payments)
+- Brevo HTTP API (Email Delivery)
 
 ## 🔑 Environment Variables
 
@@ -70,6 +71,11 @@ IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_endpoint/
 # Razorpay (Payments)
 RAZORPAY_KEY_ID=your_razorpay_key_id
 RAZORPAY_KEY_SECRET=your_razorpay_secret
+
+# Email API (Brevo)
+BREVO_API_KEY=your_brevo_api_key
+FROM_EMAIL=your_verified_gmail_address
+FROM_NAME=ASCEND E-Commerce
 ```
 
 ## 🚀 Run Locally
@@ -120,4 +126,4 @@ This project is configured for a **Single-Domain Deployment** on Render. The Exp
 
 ## 👨‍💻 Author
 
-- [@YourGitHubHandle](https://www.github.com/YourGitHubHandle)
+- [@AyaanAhmad-code](https://github.com/AyaanAhmad-code)
