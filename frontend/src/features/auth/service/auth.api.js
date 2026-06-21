@@ -35,3 +35,13 @@ export async function logout() {
     const response = await authApiInstance.post("/logout");
     return response.data;
 }
+
+export async function forgotPassword(email) {
+    const response = await authApiInstance.post("/password/forgot", { email });
+    return response.data;
+}
+
+export async function resetPassword(token, password) {
+    const response = await authApiInstance.put(`/password/reset/${token}`, { password });
+    return response.data;
+}

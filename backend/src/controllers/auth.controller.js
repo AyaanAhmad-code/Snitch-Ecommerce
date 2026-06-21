@@ -1,6 +1,8 @@
 import userModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { config } from "../config/config.js";
+import sendEmail from "../utils/sendEmail.js";
 
 async function sendTokenResponse(user, res, message) {
 
@@ -235,3 +237,98 @@ export const logout = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 }
+
+// @desc    Forgot password
+// @route   POST /api/auth/password/forgot
+export const forgotPassword = async (req, res) => {
+  try {
+    const user = await userModel.findOne({ email: req.body.email });
+
+    if (!user) {
+      // Don't leak whether the email exists or not for security, just return success
+      return res.status(200).json({ success: true, message: "If the email exists, a reset link was sent." });
+    }
+
+    if (user.googleId && !user.password) {
+      return res.status(400).json({ message: "This account uses Google Login. Please sign in with Google." });
+    }
+
+    // Get reset token
+    const resetToken = user.getResetPasswordToken();
+
+    await user.save({ validateBeforeSave: false });
+
+    // Create reset url
+    const protocol = config.NODE_ENV === "production" ? "https" : "http";
+    // For single domain deployed app, host is the same. For local, we use 5173.
+    const host = config.NODE_ENV === "production" ? req.get("host") : "localhost:5173";
+    const resetUrl = `${protocol}://${host}/reset-password/${resetToken}`;
+
+    const message = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd;">
+        <h2 style="color: #1a1410;">ASCEND Password Reset</h2>
+        <p>You requested a password reset. Please make a PUT request or click the link below to set a new password:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetUrl}" style="background-color: #C9A96E; color: #1a1410; padding: 12px 24px; text-decoration: none; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Reset Password</a>
+        </div>
+        <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
+        <p style="color: #777; font-size: 12px; margin-top: 40px;">This link will expire in 15 minutes.</p>
+      </div>
+    `;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: "Password Reset Request",
+        html: message,
+      });
+
+      res.status(200).json({ success: true, message: "Email sent successfully" });
+    } catch (error) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(500).json({ message: "Email could not be sent" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Reset password
+// @route   PUT /api/auth/password/reset/:token
+export const resetPassword = async (req, res) => {
+  try {
+    // Get hashed token from URL params
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
+
+    const user = await userModel.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    if (!req.body.password) {
+       return res.status(400).json({ message: "Please provide a new password" });
+    }
+
+    // Set new password
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    await sendTokenResponse(user, res, "Password reset successfully");
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

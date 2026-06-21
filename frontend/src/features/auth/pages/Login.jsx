@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from "../hook/useAuth";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import ContinueWithGoogle from '../components/ContinueWithGoogle';
 
 const Login = () => {
@@ -154,15 +154,15 @@ const Login = () => {
                                     >
                                         Password
                                     </label>
-                                    <a
-                                        href="#"
+                                    <Link
+                                        to="/forgot-password"
                                         className="text-[10px] transition-colors duration-200"
                                         style={{ color: '#B5ADA3' }}
                                         onMouseEnter={e => e.target.style.color = '#C9A96E'}
                                         onMouseLeave={e => e.target.style.color = '#B5ADA3'}
                                     >
                                         Forgot password?
-                                    </a>
+                                    </Link>
                                 </div>
                                 <input
                                     id="login-password"
